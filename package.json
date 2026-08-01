@@ -24,6 +24,7 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.web.json",
     "test": "node --test \"test/**/*.test.ts\"",
     "probe": "node scripts/probe.mjs",
+    "verify": "npm run build && node scripts/verify-e2e.mjs",
     "build:web": "esbuild web/app.ts --bundle --minify --format=esm --target=es2022 --outfile=public/app.js && node scripts/copy-web.mjs"
   },
   "keywords": [
