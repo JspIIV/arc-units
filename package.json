@@ -25,6 +25,8 @@
     "test": "node --test \"test/**/*.test.ts\"",
     "probe": "node scripts/probe.mjs",
     "verify": "npm run build && node scripts/verify-e2e.mjs",
+    "compile": "node scripts/compile.mjs",
+    "deploy": "npm run build && npm run compile && node scripts/deploy.mjs",
     "build:web": "esbuild web/app.ts --bundle --minify --format=esm --target=es2022 --outfile=public/app.js && node scripts/copy-web.mjs"
   },
   "keywords": [
@@ -52,6 +54,7 @@
   "devDependencies": {
     "@types/node": "^26.1.2",
     "esbuild": "^0.28.1",
+    "solc": "^0.8.36",
     "typescript": "^7.0.2",
     "viem": "^2.55.10"
   }

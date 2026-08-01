@@ -1,0 +1,65 @@
+/**
+ * Compile contracts/ with solc-js into artifacts/.
+ *
+ * Deliberately no Hardhat/Foundry: one contract does not justify the toolchain,
+ * and this keeps the repo installable with a plain `npm install`.
+ */
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import solc from "solc";
+
+const SRC = "contracts";
+const OUT = "artifacts";
+
+const files = (await readdir(SRC)).filter((f) => f.endsWith(".sol"));
+if (files.length === 0) throw new Error(`no .sol files in ${SRC}/`);
+
+const sources = {};
+for (const file of files) {
+  sources[file] = { content: await readFile(path.join(SRC, file), "utf8") };
+}
+
+const input = {
+  language: "Solidity",
+  sources,
+  settings: {
+    optimizer: { enabled: true, runs: 200 },
+    // Paris keeps the bytecode free of PUSH0, which some RPC tooling around
+    // newer chains still mishandles. Nothing here needs a later target.
+    evmVersion: "paris",
+    outputSelection: {
+      "*": { "*": ["abi", "evm.bytecode.object", "evm.deployedBytecode.object", "metadata"] },
+    },
+  },
+};
+
+const output = JSON.parse(solc.compile(JSON.stringify(input)));
+
+const errors = (output.errors ?? []).filter((e) => e.severity === "error");
+const warnings = (output.errors ?? []).filter((e) => e.severity !== "error");
+
+for (const warning of warnings) console.warn(`warning: ${warning.formattedMessage.trim()}`);
+if (errors.length > 0) {
+  for (const error of errors) console.error(error.formattedMessage);
+  process.exit(1);
+}
+
+await mkdir(OUT, { recursive: true });
+
+for (const [file, contracts] of Object.entries(output.contracts ?? {})) {
+  for (const [name, contract] of Object.entries(contracts)) {
+    const artifact = {
+      contractName: name,
+      sourceFile: file,
+      compiler: `solc ${solc.version()}`,
+      settings: input.settings,
+      abi: contract.abi,
+      bytecode: `0x${contract.evm.bytecode.object}`,
+      deployedBytecode: `0x${contract.evm.deployedBytecode.object}`,
+    };
+    const target = path.join(OUT, `${name}.json`);
+    await writeFile(target, `${JSON.stringify(artifact, null, 2)}\n`);
+    const size = contract.evm.deployedBytecode.object.length / 2;
+    console.log(`${name}: ${size} bytes deployed -> ${target}`);
+  }
+}
