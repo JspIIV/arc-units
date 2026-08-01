@@ -1,16 +1,45 @@
 {
-  "name": "arccode",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "arc-units",
+  "version": "0.1.0",
+  "description": "Correct USDC amount handling on Arc, where one balance is exposed through an 18-decimal native interface and a truncating 6-decimal ERC-20 interface",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "probe": "node scripts/probe.mjs"
+  },
+  "keywords": [
+    "arc",
+    "circle",
+    "usdc",
+    "stablecoin",
+    "decimals",
+    "viem",
+    "evm"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "viem": "^2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "typescript": "^7.0.2",
     "viem": "^2.55.10"
   }
 }
