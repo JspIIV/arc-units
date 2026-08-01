@@ -26,6 +26,62 @@ export const arcTestnet = defineChain({
   },
 });
 
+/**
+ * DustLens on Arc testnet — the same invariant checked from inside the EVM.
+ *
+ * Reads an account's native balance and the ERC-20 precompile in one call, so
+ * the two cannot straddle a block, and returns the remainder between them.
+ * Deployed and verified at block 54749355.
+ */
+export const DUST_LENS_TESTNET = "0x3813b1dbc6285b9938f01f9055eee81b6495c489" as const;
+
+export const dustLensAbi = [
+  {
+    name: "inspect",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [
+      { name: "nativeBalance", type: "uint256" },
+      { name: "erc20Balance", type: "uint256" },
+      { name: "dust", type: "uint256" },
+      { name: "consistent", type: "bool" },
+    ],
+  },
+  {
+    name: "dustOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "transferableOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "inspectMany",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "accounts", type: "address[]" }],
+    outputs: [
+      { name: "nativeBalances", type: "uint256[]" },
+      { name: "erc20Balances", type: "uint256[]" },
+      { name: "dusts", type: "uint256[]" },
+    ],
+  },
+  {
+    name: "splitEvenly",
+    type: "function",
+    stateMutability: "payable",
+    inputs: [{ name: "recipients", type: "address[]" }],
+    outputs: [],
+  },
+] as const;
+
 export const erc20Abi = [
   { name: "decimals", type: "function", stateMutability: "view", inputs: [], outputs: [{ type: "uint8" }] },
   { name: "symbol", type: "function", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },

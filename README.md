@@ -133,3 +133,36 @@ node scripts/demo.mjs   # end-to-end run of the built package
 ## License
 
 MIT
+
+## On-chain: DustLens
+
+The library proves the 18/6 relationship off-chain. `DustLens` proves it from inside the EVM.
+
+| | |
+|---|---|
+| Address | [`0x3813b1dbc6285b9938f01f9055eee81b6495c489`](https://testnet.arcscan.app/address/0x3813b1dbc6285b9938f01f9055eee81b6495c489) |
+| Network | Arc Testnet (5042002) |
+| Source | [`contracts/DustLens.sol`](contracts/DustLens.sol) |
+
+`inspect(address)` returns the native balance, the ERC-20 balance, the dust between them, and whether the two agree — all in a single call, which also removes the torn-read window that separate `eth_call`s have across Arc's ~500ms blocks.
+
+Verified live against the deployer account:
+
+```
+contract native : 4985632220860000000  (4.98563222086 USDC)
+rpc      native : 4985632220860000000
+contract erc20  : 4985632              (4.985632 USDC)
+contract dust   : 220860000000         (0.00000022086 USDC)
+consistent      : true
+```
+
+`splitEvenly(address[])` shows the practical consequence: it distributes native value exactly and gives the remainder to the first recipient, so the contract keeps nothing. A split done through the ERC-20 interface would strand whatever fell below `1e-6` USDC.
+
+```
+splitting 1000000000001 between 2
+  0x…0a11 received 500000000001
+  0x…0b22 received 500000000000
+  contract kept 0
+```
+
+Reproduce with `npm run compile` and `node scripts/exercise-split.mjs`.

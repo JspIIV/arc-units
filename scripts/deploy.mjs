@@ -65,6 +65,24 @@ console.log(`explorer : ${arcTestnet.blockExplorers.default.url}/address/${addre
 
 console.log("\nverifying against live state…");
 
+/**
+ * The public RPC load-balances across nodes, and immediately after a deploy
+ * some of them have not seen the new block yet — an eth_call routed to a
+ * lagging node returns "0x" and viem reports it as a missing function. Retry
+ * until the code is visible from whichever node answers.
+ */
+async function waitForCode(attempts = 15) {
+  for (let i = 1; i <= attempts; i++) {
+    const code = await publicClient.getCode({ address });
+    if (code && code !== "0x") return;
+    console.log(`  (code not visible yet, attempt ${i}/${attempts})`);
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error(`no code at ${address} after ${attempts} attempts`);
+}
+
+await waitForCode();
+
 const read = (functionName, args) =>
   publicClient.readContract({ address, abi: artifact.abi, functionName, args });
 
@@ -72,7 +90,9 @@ const decimals = await read("erc20Decimals", []);
 console.log(`  precompile decimals via contract : ${decimals}`);
 if (Number(decimals) !== 6) throw new Error(`expected 6 decimals, contract read ${decimals}`);
 
-const blockNumber = await publicClient.getBlockNumber();
+// Stay a few blocks behind the head for the same reason: a node that has not
+// caught up cannot answer a call pinned to a block it has never seen.
+const blockNumber = (await publicClient.getBlockNumber()) - 3n;
 const subject = account.address;
 
 const [onChainNative, onChainErc20, onChainDust, consistent] = await publicClient.readContract({
