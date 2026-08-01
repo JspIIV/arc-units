@@ -46,6 +46,18 @@ if (errors.length > 0) {
 
 await mkdir(OUT, { recursive: true });
 
+// Keep the exact input the compiler saw: explorer verification has to replay
+// it byte for byte, and any drift in settings produces a bytecode mismatch.
+await writeFile(path.join(OUT, "standard-input.json"), `${JSON.stringify(input, null, 2)}\n`);
+// Blockscout matches on `vMAJOR.MINOR.PATCH+commit.HASH`; solc.version() adds
+// a build suffix (".Emscripten.clang") that no explorer recognises.
+const fullVersion = solc.version();
+const explorerVersion = `v${fullVersion.match(/^\d+\.\d+\.\d+\+commit\.[0-9a-f]+/)?.[0] ?? fullVersion}`;
+await writeFile(
+  path.join(OUT, "compiler.json"),
+  `${JSON.stringify({ version: fullVersion, explorerVersion }, null, 2)}\n`,
+);
+
 for (const [file, contracts] of Object.entries(output.contracts ?? {})) {
   for (const [name, contract] of Object.entries(contracts)) {
     const artifact = {
