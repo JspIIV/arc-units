@@ -34,6 +34,15 @@
     "evm"
   ],
   "license": "MIT",
+  "author": "JspIIV",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JspIIV/arc-units.git"
+  },
+  "homepage": "https://github.com/JspIIV/arc-units#readme",
+  "bugs": {
+    "url": "https://github.com/JspIIV/arc-units/issues"
+  },
   "peerDependencies": {
     "viem": "^2"
   },
