@@ -20,6 +20,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"test/**/*.test.ts\"",
     "probe": "node scripts/probe.mjs"
