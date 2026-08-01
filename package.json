@@ -21,9 +21,10 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run typecheck && npm test && npm run build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.web.json",
     "test": "node --test \"test/**/*.test.ts\"",
-    "probe": "node scripts/probe.mjs"
+    "probe": "node scripts/probe.mjs",
+    "build:web": "esbuild web/app.ts --bundle --minify --format=esm --target=es2022 --outfile=public/app.js && node scripts/copy-web.mjs"
   },
   "keywords": [
     "arc",
@@ -49,6 +50,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
+    "esbuild": "^0.28.1",
     "typescript": "^7.0.2",
     "viem": "^2.55.10"
   }

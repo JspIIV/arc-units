@@ -1,0 +1,286 @@
+:root {
+  color-scheme: light dark;
+  --bg: #fbfbfa;
+  --panel: #ffffff;
+  --ink: #16181d;
+  --dim: #6a7080;
+  --line: #e3e5ea;
+  --accent: #2f6df6;
+  --warn: #b4560a;
+  --warn-bg: #fdf3e7;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1014;
+    --panel: #161a21;
+    --ink: #e6e8ee;
+    --dim: #8b93a5;
+    --line: #262c37;
+    --accent: #6b9bff;
+    --warn: #f0a860;
+    --warn-bg: #2a2015;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0 0 4rem;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+header {
+  padding-top: 4rem;
+  padding-bottom: 1rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 7vw, 3rem);
+  letter-spacing: -0.03em;
+  font-weight: 650;
+}
+
+h1 .dim {
+  color: var(--dim);
+}
+
+.lede {
+  margin: 0.75rem 0 1.25rem;
+  font-size: 1.1rem;
+  color: var(--dim);
+  max-width: 34rem;
+}
+
+.lede strong {
+  color: var(--ink);
+}
+
+.links {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.links a:hover {
+  text-decoration: underline;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.note {
+  color: var(--dim);
+  font-size: 0.9rem;
+  margin: 0.5rem 0 1rem;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+}
+
+pre {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  margin: 0 0 0.85rem;
+}
+
+pre code {
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+/* --- comparison table --- */
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.compare th,
+.compare td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.compare thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+}
+
+.compare tbody th {
+  font-weight: 400;
+  color: var(--dim);
+  width: 30%;
+}
+
+/* --- inputs --- */
+.field {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  background: var(--bg);
+}
+
+.field:focus-within {
+  border-color: var(--accent);
+}
+
+.field label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+  flex-shrink: 0;
+}
+
+.field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.95rem;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.presets button {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--dim);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.presets button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.presets button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* --- readout --- */
+.readout {
+  margin: 1.1rem 0 0;
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr;
+  gap: 0.05rem 1rem;
+}
+
+.readout:empty {
+  margin: 0;
+}
+
+.readout dt {
+  color: var(--dim);
+  font-size: 0.82rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.readout dd {
+  margin: 0;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.readout dd .unit {
+  color: var(--dim);
+  font-size: 0.78rem;
+  margin-left: 0.35rem;
+}
+
+.readout .lost {
+  color: var(--warn);
+}
+
+.banner {
+  grid-column: 1 / -1;
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.error {
+  margin-top: 0.9rem;
+  color: var(--warn);
+  font-size: 0.87rem;
+}
+
+.status {
+  margin-top: 0.9rem;
+  color: var(--dim);
+  font-size: 0.87rem;
+}
+
+footer {
+  margin-top: 2.5rem;
+  color: var(--dim);
+  font-size: 0.84rem;
+}
+
+footer p {
+  border-top: 1px solid var(--line);
+  padding-top: 1.25rem;
+}

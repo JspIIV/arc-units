@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>arc-units — one balance, two answers</title>
+    <meta
+      name="description"
+      content="Arc exposes one USDC balance through an 18-decimal native interface and a truncating 6-decimal ERC-20 interface. See the difference live."
+    />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◐</text></svg>" />
+    <link rel="stylesheet" href="./app.css" />
+  </head>
+  <body>
+    <header class="wrap">
+      <h1>arc<span class="dim">-</span>units</h1>
+      <p class="lede">
+        Arc exposes <strong>one</strong> USDC balance through <strong>two</strong> interfaces at
+        different scales. Get them confused and you are wrong by a factor of a trillion.
+      </p>
+      <nav class="links">
+        <a href="https://github.com/JspIIV/arc-units">GitHub</a>
+        <a href="https://www.npmjs.com/package/arc-units">npm</a>
+        <a href="https://docs.arc.io/">Arc docs</a>
+      </nav>
+    </header>
+
+    <main class="wrap">
+      <section class="card">
+        <h2>The two interfaces</h2>
+        <table class="compare">
+          <thead>
+            <tr><th></th><th>native</th><th>ERC-20</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>read via</th><td><code>getBalance()</code></td><td><code>balanceOf()</code></td></tr>
+            <tr><th>decimals</th><td><strong>18</strong></td><td><strong>6</strong></td></tr>
+            <tr><th>address</th><td>—</td><td><code>0x3600…0000</code></td></tr>
+            <tr><th>truncates</th><td>no</td><td><strong>yes</strong></td></tr>
+          </tbody>
+        </table>
+        <p class="note">
+          They are not two tokens. A precompile forwards ERC-20 calls to the account's native
+          balance, so a UI showing both double-counts the same money.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Convert an amount</h2>
+        <p class="note">Type a USDC amount and watch what each interface reports.</p>
+        <div class="field">
+          <label for="amount">USDC</label>
+          <input id="amount" type="text" inputmode="decimal" value="1.234567890123456789" spellcheck="false" />
+        </div>
+        <div class="presets">
+          <button type="button" data-amount="1.234567890123456789">dusty amount</button>
+          <button type="button" data-amount="1.5">clean amount</button>
+          <button type="button" data-amount="0.000000025">one gas unit</button>
+          <button type="button" data-amount="0.0000001">below ERC-20 resolution</button>
+        </div>
+        <div id="convert-error" class="error" hidden></div>
+        <dl id="convert-out" class="readout"></dl>
+      </section>
+
+      <section class="card">
+        <h2>Read a live account</h2>
+        <p class="note">
+          Both reads are pinned to a single block. Arc produces one every ~500&nbsp;ms, so reading
+          them separately at <code>latest</code> can straddle a block and look like the invariant
+          broke.
+        </p>
+        <div class="field">
+          <label for="address">Address</label>
+          <input id="address" type="text" placeholder="0x…" spellcheck="false" autocomplete="off" />
+        </div>
+        <div class="presets">
+          <button type="button" id="lookup">Read balance</button>
+          <button type="button" id="sample">Sample a recent account</button>
+        </div>
+        <div id="lookup-status" class="status" hidden></div>
+        <div id="lookup-error" class="error" hidden></div>
+        <dl id="lookup-out" class="readout"></dl>
+      </section>
+
+      <section class="card">
+        <h2>Use it</h2>
+        <pre><code>npm install arc-units viem</code></pre>
+        <pre><code>import { native, toErc20, toErc20Exact } from "arc-units";
+
+const balance = native(1_234_567_890_123_456_789n);  // from getBalance()
+
+const { value, dust } = toErc20(balance);
+// value: 1234567n        what the recipient sees
+// dust:  890123456789n   stays behind
+
+toErc20Exact(balance);  // throws instead of losing it</code></pre>
+        <p class="note">
+          Amounts carry their interface in the type, so a native amount and an ERC-20 amount cannot
+          be added, compared, or passed to the wrong function — that is a compile error.
+        </p>
+      </section>
+    </main>
+
+    <footer class="wrap">
+      <p>
+        Measured on Arc testnet, not copied from docs — run <code>npm run probe</code> to reproduce.
+        MIT licensed.
+      </p>
+    </footer>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
