@@ -1,0 +1,239 @@
+/*
+ * Sized for screen recording, not for reading at a desk: type is large, the
+ * palette is fixed dark (a viewer's light-mode preference must not change what
+ * lands in the video), and everything sits inside a 16:9-friendly safe area.
+ */
+:root {
+  --bg: #0c0e12;
+  --panel: #151922;
+  --ink: #eef0f5;
+  --dim: #8d95a8;
+  --line: #262c37;
+  --accent: #6b9bff;
+  --ok: #55c98d;
+  --hot: #ffab5e;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.dim { color: var(--dim); }
+.ok { color: var(--ok); }
+.hot { color: var(--hot); }
+.mono { font-family: var(--mono); }
+
+/* --- start gate --- */
+.gate {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.gate h1 {
+  font-size: clamp(3rem, 9vw, 6rem);
+  margin: 0;
+  letter-spacing: -0.04em;
+  font-weight: 650;
+}
+
+.gate p { color: var(--dim); margin: 0; font-size: clamp(0.95rem, 1.8vw, 1.15rem); }
+
+.gate button {
+  margin-top: 1.5rem;
+  padding: 0.8rem 2.5rem;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0c0e12;
+  background: var(--accent);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.gate button:disabled { opacity: 0.4; cursor: default; }
+
+.gate-note { font-size: 0.85rem !important; margin-top: 0.75rem !important; }
+
+kbd {
+  font-family: var(--mono);
+  font-size: 0.8em;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+}
+
+/* --- stage --- */
+.stage { height: 100%; position: relative; }
+
+.progress {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--line);
+  z-index: 5;
+}
+
+.progress > div {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 4vh 4vw;
+}
+
+.scene.active {
+  display: flex;
+  animation: rise 0.5s ease both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene.active { animation: none; }
+}
+
+/* --- typography, scaled for video --- */
+h1.huge {
+  font-size: clamp(2.6rem, 7.5vw, 5rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  margin: 0;
+  font-weight: 650;
+}
+
+h1.big {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  letter-spacing: -0.03em;
+  margin: 0;
+  font-weight: 650;
+}
+
+h2 {
+  font-size: clamp(1.6rem, 3.8vw, 2.6rem);
+  letter-spacing: -0.025em;
+  margin: 0;
+  font-weight: 620;
+}
+
+.kicker {
+  font-size: clamp(0.75rem, 1.4vw, 0.95rem);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  font-weight: 600;
+  margin: 0;
+}
+
+.sub {
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  color: var(--dim);
+  max-width: 46rem;
+  margin: 0;
+}
+
+.sub strong { color: var(--ink); }
+.big-note { font-size: clamp(1.05rem, 2.2vw, 1.5rem); }
+.dim-note { font-size: clamp(0.8rem, 1.4vw, 0.95rem); }
+
+.equation {
+  font-size: clamp(1.1rem, 2.8vw, 2rem);
+  text-align: center;
+  padding: 1.2rem 0;
+  margin: 0;
+  color: var(--ink);
+}
+
+/* --- cards --- */
+.two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.card-label {
+  font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--dim);
+  margin: 0 0 0.5rem;
+}
+
+.card .small { font-size: 0.85rem; color: var(--dim); margin: 0 0 0.9rem; }
+
+.figure {
+  font-family: var(--mono);
+  font-size: clamp(1.4rem, 3.4vw, 2.4rem);
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+  word-break: break-all;
+}
+
+.card-note { font-size: 0.85rem; color: var(--dim); margin: 0; }
+
+/* --- code --- */
+pre {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+  margin: 0;
+  overflow: hidden;
+}
+
+pre code {
+  font-family: var(--mono);
+  line-height: 1.7;
+  display: block;
+  white-space: pre;
+}
+
+.stack code { font-size: clamp(0.78rem, 1.9vw, 1.25rem); }
+.code code { font-size: clamp(0.7rem, 1.5vw, 1.05rem); }
+.code .c { color: var(--dim); }
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  font-family: var(--mono);
+  font-size: clamp(0.9rem, 1.8vw, 1.2rem);
+  color: var(--accent);
+  margin: 0.5rem 0 0;
+}

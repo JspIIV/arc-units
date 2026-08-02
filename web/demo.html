@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>arc-units — 3 minute demo</title>
+    <meta name="description" content="Self-running demo of arc-units, reading live Arc testnet state." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◐</text></svg>" />
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <!-- Start gate: gives a clean first frame to begin recording on. -->
+    <div id="gate" class="gate">
+      <h1>arc<span class="dim">-</span>units</h1>
+      <p>A three-minute walkthrough. Runs itself — nothing to click once started.</p>
+      <button id="start" type="button">Start</button>
+      <p class="gate-note">
+        Press <kbd>F</kbd> for fullscreen first. <kbd>Space</kbd> pauses, <kbd>R</kbd> restarts.
+      </p>
+      <p id="preload" class="gate-note">connecting to Arc testnet…</p>
+    </div>
+
+    <div id="stage" class="stage" hidden>
+      <div class="progress"><div id="bar"></div></div>
+
+      <!-- 1 -->
+      <section class="scene" data-seconds="9">
+        <p class="kicker">Arc · Circle's stablecoin-native L1</p>
+        <h1 class="huge">One balance.<br />Two answers.</h1>
+        <p class="sub">On Arc, USDC is the gas token. That has a consequence almost nobody types correctly.</p>
+      </section>
+
+      <!-- 2 -->
+      <section class="scene" data-seconds="20">
+        <h2>The same account, read two ways</h2>
+        <div class="two">
+          <div class="card">
+            <p class="card-label">native interface</p>
+            <p class="mono small">getBalance()</p>
+            <p class="figure" data-live="native">—</p>
+            <p class="card-note">18 decimals · what gas is priced in</p>
+          </div>
+          <div class="card">
+            <p class="card-label">ERC-20 interface</p>
+            <p class="mono small">balanceOf() at 0x3600…0000</p>
+            <p class="figure" data-live="erc20">—</p>
+            <p class="card-note">6 decimals · truncates</p>
+          </div>
+        </div>
+        <p class="sub">
+          Live from Arc testnet, account <span class="mono" data-live="address">…</span>, both reads
+          pinned to block <span class="mono" data-live="block">…</span>.
+        </p>
+      </section>
+
+      <!-- 3 -->
+      <section class="scene" data-seconds="20">
+        <h2>They are not two tokens</h2>
+        <p class="sub">
+          A precompile forwards ERC-20 calls to the native balance. Same money — so a wallet showing
+          both is counting it twice.
+        </p>
+        <p class="equation">
+          <span class="mono">balanceOf()</span> === <span class="mono">floor( getBalance() / 10<sup>12</sup> )</span>
+        </p>
+        <p class="sub">Measured across every live account sampled. It held every time.</p>
+      </section>
+
+      <!-- 4 -->
+      <section class="scene" data-seconds="22">
+        <h2>Which means money you cannot see</h2>
+        <p class="sub">Whatever falls below 10<sup>−6</sup> USDC exists, but no token transfer can move it.</p>
+        <pre class="stack"><code>native <span data-live="nativeRaw">—</span>
+erc20  <span data-live="erc20Raw">—</span>
+dust   <span class="hot" data-live="dustRaw">—</span></code></pre>
+        <p class="sub big-note">
+          That last line is real balance, stranded — <span class="hot" data-live="dustFmt">—</span> USDC
+          on this account alone.
+        </p>
+      </section>
+
+      <!-- 5 -->
+      <section class="scene" data-seconds="18">
+        <h2>And fees that round to nothing</h2>
+        <div class="two">
+          <div class="card">
+            <p class="card-label">a transfer, priced natively</p>
+            <p class="figure ok" data-live="gasCost">—</p>
+            <p class="card-note">correct</p>
+          </div>
+          <div class="card">
+            <p class="card-label">the same gas price, read as ERC-20</p>
+            <p class="figure hot">0</p>
+            <p class="card-note">gone</p>
+          </div>
+        </div>
+        <p class="sub">Gas runs three orders of magnitude below what the token interface can express.</p>
+      </section>
+
+      <!-- 6 -->
+      <section class="scene" data-seconds="18">
+        <h2>Even the logs disagree</h2>
+        <p class="sub">
+          Under EIP-7708 a native USDC movement emits a <span class="mono">Transfer</span> at
+          <strong>18</strong> decimals from a system address. The ERC-20 contract emits its own at
+          <strong>6</strong>.
+        </p>
+        <p class="sub">
+          One payment, two log streams, two scales. An indexer that treats them as one token either
+          double-counts or is off by a trillion.
+        </p>
+      </section>
+
+      <!-- 7 -->
+      <section class="scene" data-seconds="26">
+        <h2>arc-units makes the mistake impossible</h2>
+        <pre class="code"><code><span class="c">// tagged at the boundary, never mixed again</span>
+const balance = native(await client.getBalance({ address }));
+
+const { value, dust } = toErc20(balance);
+<span class="c">// value → what the recipient actually receives</span>
+<span class="c">// dust  → what would have vanished silently</span>
+
+toErc20Exact(balance);   <span class="c">// throws instead of losing it</span>
+balance + erc20Amount;   <span class="c">// ✗ compile error</span></code></pre>
+        <p class="sub">The conversion hands you the dust. You cannot drop it by accident.</p>
+      </section>
+
+      <!-- 8 -->
+      <section class="scene" data-seconds="26">
+        <h2>And a contract that proves it on-chain</h2>
+        <p class="sub">
+          <span class="mono">DustLens</span> · deployed and verified on Arc testnet ·
+          <span class="mono">0x3813b1…c489</span>
+        </p>
+        <p class="sub">Calling <span class="mono">inspect()</span> live, right now:</p>
+        <pre class="stack"><code>nativeBalance <span data-live="lensNative">—</span>
+erc20Balance  <span data-live="lensErc20">—</span>
+dust          <span class="hot" data-live="lensDust">—</span>
+consistent    <span class="ok" data-live="lensOk">—</span></code></pre>
+        <p class="sub">One call, one block — so the two readings can never straddle a 500 ms block.</p>
+      </section>
+
+      <!-- 9 -->
+      <section class="scene" data-seconds="21">
+        <h1 class="big">Correct by construction.</h1>
+        <p class="sub">Library · live demo · verified contract · reproducible measurement.</p>
+        <p class="links">
+          <span>arc-units.vercel.app</span>
+          <span>github.com/JspIIV/arc-units</span>
+        </p>
+        <p class="sub dim-note">Programmable Money Hackathon · DeFi Track</p>
+      </section>
+    </div>
+
+    <script type="module" src="./demo.js"></script>
+  </body>
+</html>
