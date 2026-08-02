@@ -12,7 +12,7 @@
     <nav class="deckbar">
       <span class="brand">arc-units</span>
       <span class="hint">↓ scroll or use ← → keys</span>
-      <span class="counter"><span id="current">1</span> / 8</span>
+      <span class="counter"><span id="current">1</span> / 9</span>
     </nav>
 
     <main>
@@ -51,18 +51,24 @@
 
       <!-- 3 -->
       <section class="slide">
-        <h2>Nobody agrees which is which</h2>
+        <h2>Documented — and still a trap</h2>
         <p class="lede">
-          While building, I found public sources stating the <em>native</em> token is 6-decimal.
-          Anyone who believes that is off by a factor of 10<sup>12</sup>.
+          Arc's docs get this right. <code>evm-differences</code> states plainly that the 6-decimal
+          <code>balanceOf</code> drops anything below 1×10<sup>−6</sup> USDC.
         </p>
-        <p>So I stopped reading and measured it. Both interfaces, same account, pinned to one block:</p>
+        <p>
+          The problem is not the documentation. It is that <strong>the type system says
+          nothing</strong> — both sides are plain <code>bigint</code>, so the compiler is happy
+          either way. Meanwhile third-party guides state the <em>native</em> token is 6-decimal,
+          which is wrong by 10<sup>12</sup>, and community repos copy it.
+        </p>
+        <p>So I stopped reading and measured. Both interfaces, same account, pinned to one block:</p>
         <pre><code>8/8 accounts satisfy erc20 === floor(native / 1e12)
-8/8 accounts hold sub-6-decimal dust invisible to the ERC-20 view
-
-CONFIRMED: native is 18-decimal, the ERC-20 view is a
-           truncating 6-decimal projection</code></pre>
-        <p class="note">Reproducible: <code>npm run probe</code> derives this from live testnet, from scratch.</p>
+8/8 accounts hold sub-6-decimal dust invisible to the ERC-20 view</code></pre>
+        <p class="note">
+          Reproducible: <code>npm run probe</code> derives this from live testnet, from scratch.
+          A correctly documented footgun is still a footgun.
+        </p>
       </section>
 
       <!-- 4 -->
@@ -101,6 +107,25 @@ dust   :          220860000000 (0.00000022086 USDC — unreachable)</code></pre>
 
       <!-- 6 -->
       <section class="slide">
+        <h2>Consequence 3 — one transfer, logged twice</h2>
+        <p class="lede">
+          Under EIP-7708, every native USDC movement emits a <code>Transfer</code> log from a system
+          address at <strong>18 decimals</strong>. The ERC-20 contract emits its own at
+          <strong>6</strong>.
+        </p>
+        <p>
+          Same money, two log streams, two scales. An indexer that treats them as one token either
+          double-counts every payment or records amounts 10<sup>12</sup> off — and both look
+          plausible until someone reconciles the books.
+        </p>
+        <p class="note">
+          This one is not solved yet. It is the next thing the library should cover, and the question
+          I most want to put to the Arc team.
+        </p>
+      </section>
+
+      <!-- 7 -->
+      <section class="slide">
         <h2>The fix: make it a compile error</h2>
         <p class="lede">
           Both interfaces are plain <code>bigint</code>, so nothing stops you adding a gas price to a
@@ -121,7 +146,7 @@ balance + erc20Amount   // ✗ compile error</code></pre>
         </p>
       </section>
 
-      <!-- 7 -->
+      <!-- 8 -->
       <section class="slide">
         <h2>On-chain: DustLens</h2>
         <p class="lede">The same invariant, checkable from inside the EVM.</p>
@@ -143,7 +168,7 @@ balance + erc20Amount   // ✗ compile error</code></pre>
         </p>
       </section>
 
-      <!-- 8 -->
+      <!-- 9 -->
       <section class="slide">
         <h2>Try it</h2>
         <p class="lede">
@@ -157,6 +182,7 @@ balance + erc20Amount   // ✗ compile error</code></pre>
         </p>
         <h3>What's next</h3>
         <ul>
+          <li>Reconciling the two <code>Transfer</code> log streams so indexers stop double-counting</li>
           <li>A sweeper that finds and consolidates stranded dust across accounts</li>
           <li>Unit-safe wrappers over App Kit's bridge / swap / send flows</li>
           <li>Answers on whether the flooring is guaranteed, and whether mainnet keeps the 18/6 split</li>
