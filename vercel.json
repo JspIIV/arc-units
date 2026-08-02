@@ -3,6 +3,7 @@
   "buildCommand": "npm run build:web",
   "outputDirectory": "public",
   "framework": null,
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/app.js",
