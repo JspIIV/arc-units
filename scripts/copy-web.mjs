@@ -2,7 +2,7 @@
 import { copyFile, mkdir } from "node:fs/promises";
 
 await mkdir("public", { recursive: true });
-for (const file of ["index.html", "app.css"]) {
+for (const file of ["index.html", "app.css", "deck.html", "deck.css"]) {
   await copyFile(`web/${file}`, `public/${file}`);
   console.log(`copied web/${file} -> public/${file}`);
 }

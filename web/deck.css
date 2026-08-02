@@ -1,0 +1,218 @@
+﻿:root {
+  color-scheme: light dark;
+  --bg: #fbfbfa;
+  --panel: #ffffff;
+  --ink: #16181d;
+  --dim: #6a7080;
+  --line: #e3e5ea;
+  --accent: #2f6df6;
+  --good: #1b7f4b;
+  --bad: #b4560a;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1014;
+    --panel: #161a21;
+    --ink: #e6e8ee;
+    --dim: #8b93a5;
+    --line: #262c37;
+    --accent: #6b9bff;
+    --good: #55c98d;
+    --bad: #f0a860;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- chrome --- */
+.deckbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1.25rem;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.8rem;
+}
+
+.deckbar .brand { font-weight: 600; letter-spacing: -0.01em; }
+.deckbar .hint { color: var(--dim); }
+.deckbar .counter { color: var(--dim); font-family: var(--mono); }
+
+@media (max-width: 640px) {
+  .deckbar .hint { display: none; }
+}
+
+/* --- slides --- */
+html { scroll-behavior: smooth; }
+
+.slide {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 5rem 1.5rem 4rem;
+  border-bottom: 1px solid var(--line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+h1 {
+  margin: 0.5rem 0;
+  font-size: clamp(2.8rem, 9vw, 4.5rem);
+  letter-spacing: -0.035em;
+  font-weight: 650;
+  line-height: 1.05;
+}
+
+h1 .dim { color: var(--dim); }
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  letter-spacing: -0.02em;
+  font-weight: 620;
+}
+
+h3 {
+  margin: 2rem 0 0.6rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+}
+
+.kicker {
+  margin: 0;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tagline {
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+  color: var(--dim);
+  max-width: 32rem;
+  margin: 0.5rem 0 2rem;
+}
+
+.lede {
+  font-size: clamp(1rem, 2.2vw, 1.15rem);
+  color: var(--dim);
+  max-width: 40rem;
+}
+
+.lede strong, .lede em { color: var(--ink); font-style: normal; }
+
+p { margin: 0 0 0.9rem; }
+
+.note {
+  color: var(--dim);
+  font-size: 0.88rem;
+  max-width: 40rem;
+}
+
+ul { margin: 0; padding-left: 1.1rem; color: var(--dim); }
+li { margin-bottom: 0.4rem; }
+
+code { font-family: var(--mono); font-size: 0.88em; }
+
+pre {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  margin: 0 0 1rem;
+}
+
+pre code { font-size: clamp(0.72rem, 1.6vw, 0.85rem); line-height: 1.6; }
+
+.good { color: var(--good); }
+.bad { color: var(--bad); }
+
+/* --- table --- */
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin-bottom: 1rem;
+}
+
+.compare th, .compare td {
+  text-align: left;
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.compare thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--dim);
+}
+
+.compare tbody th { font-weight: 400; color: var(--dim); width: 28%; }
+
+/* --- split panels --- */
+.split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.panel-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--dim);
+  margin-bottom: 0.5rem;
+}
+
+.big {
+  font-family: var(--mono);
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.02em;
+}
+
+/* --- links --- */
+.links { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+.links a { color: var(--accent); text-decoration: none; font-size: 0.95rem; }
+.links a:hover { text-decoration: underline; }
+.big-links a { font-size: 1.05rem; }
+
+@media print {
+  .deckbar { display: none; }
+  .slide { min-height: auto; page-break-after: always; padding: 2rem 0; }
+}
+

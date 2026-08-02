@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>arc-units — one balance, two answers</title>
+    <meta name="description" content="Programmable Money Hackathon submission deck for arc-units." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◐</text></svg>" />
+    <link rel="stylesheet" href="./deck.css" />
+  </head>
+  <body>
+    <nav class="deckbar">
+      <span class="brand">arc-units</span>
+      <span class="hint">↓ scroll or use ← → keys</span>
+      <span class="counter"><span id="current">1</span> / 8</span>
+    </nav>
+
+    <main>
+      <!-- 1 -->
+      <section class="slide title-slide">
+        <p class="kicker">Programmable Money Hackathon · DeFi Track</p>
+        <h1>arc<span class="dim">-</span>units</h1>
+        <p class="tagline">Arc shows you one balance two different ways.<br />Confuse them and you are wrong by a trillion.</p>
+        <p class="links">
+          <a href="https://arc-units.vercel.app">arc-units.vercel.app</a>
+          <a href="https://github.com/JspIIV/arc-units">github.com/JspIIV/arc-units</a>
+        </p>
+      </section>
+
+      <!-- 2 -->
+      <section class="slide">
+        <h2>The problem</h2>
+        <p class="lede">
+          USDC is Arc's native gas token. That means one balance is exposed through two interfaces
+          at different scales.
+        </p>
+        <table class="compare">
+          <thead><tr><th></th><th>native</th><th>ERC-20</th></tr></thead>
+          <tbody>
+            <tr><th>read via</th><td><code>getBalance()</code></td><td><code>balanceOf()</code></td></tr>
+            <tr><th>decimals</th><td><strong>18</strong></td><td><strong>6</strong></td></tr>
+            <tr><th>address</th><td>—</td><td><code>0x3600…0000</code></td></tr>
+            <tr><th>truncates</th><td>no</td><td class="bad"><strong>yes</strong></td></tr>
+          </tbody>
+        </table>
+        <p class="note">
+          They are not two tokens. A precompile forwards ERC-20 calls to the native balance — so a
+          UI that shows both is double-counting the same money.
+        </p>
+      </section>
+
+      <!-- 3 -->
+      <section class="slide">
+        <h2>Nobody agrees which is which</h2>
+        <p class="lede">
+          While building, I found public sources stating the <em>native</em> token is 6-decimal.
+          Anyone who believes that is off by a factor of 10<sup>12</sup>.
+        </p>
+        <p>So I stopped reading and measured it. Both interfaces, same account, pinned to one block:</p>
+        <pre><code>8/8 accounts satisfy erc20 === floor(native / 1e12)
+8/8 accounts hold sub-6-decimal dust invisible to the ERC-20 view
+
+CONFIRMED: native is 18-decimal, the ERC-20 view is a
+           truncating 6-decimal projection</code></pre>
+        <p class="note">Reproducible: <code>npm run probe</code> derives this from live testnet, from scratch.</p>
+      </section>
+
+      <!-- 4 -->
+      <section class="slide">
+        <h2>Consequence 1 — gas disappears</h2>
+        <p class="lede">Gas on Arc runs around <code>0.000000025</code> USDC per unit.</p>
+        <div class="split">
+          <div class="panel">
+            <p class="panel-label">read as native (18d)</p>
+            <p class="big good">0.000483 USDC</p>
+            <p class="note">a plain transfer, correctly priced</p>
+          </div>
+          <div class="panel">
+            <p class="panel-label">read as ERC-20 (6d)</p>
+            <p class="big bad">0</p>
+            <p class="note">three orders of magnitude below what it can represent</p>
+          </div>
+        </div>
+        <p class="note">Any fee estimate that goes through the token interface silently rounds to nothing.</p>
+      </section>
+
+      <!-- 5 -->
+      <section class="slide">
+        <h2>Consequence 2 — dust gets stranded</h2>
+        <p class="lede">
+          "Send my whole balance" over ERC-20 can never move everything. Every account I sampled was
+          already carrying value no token transfer can reach.
+        </p>
+        <pre><code>native : 4985632220860000000   (4.98563222086 USDC)
+erc20  : 4985632               (4.985632   USDC)
+dust   :          220860000000 (0.00000022086 USDC — unreachable)</code></pre>
+        <p class="note">
+          Small per account. Not small across a payments chain built for institutions.
+        </p>
+      </section>
+
+      <!-- 6 -->
+      <section class="slide">
+        <h2>The fix: make it a compile error</h2>
+        <p class="lede">
+          Both interfaces are plain <code>bigint</code>, so nothing stops you adding a gas price to a
+          token amount. <code>arc-units</code> gives each one its own type.
+        </p>
+        <pre><code>const balance = native(1_234_567_890_123_456_789n);  // getBalance()
+
+const { value, dust } = toErc20(balance);
+// value: 1234567n        what the recipient actually sees
+// dust:  890123456789n   what stays behind
+
+toErc20Exact(balance);  // throws rather than lose it
+
+balance + erc20Amount   // ✗ compile error</code></pre>
+        <p class="note">
+          Converting down returns the dust <em>alongside</em> the value, so callers have to decide
+          what happens to it. Silence is not an option the API offers.
+        </p>
+      </section>
+
+      <!-- 7 -->
+      <section class="slide">
+        <h2>On-chain: DustLens</h2>
+        <p class="lede">The same invariant, checkable from inside the EVM.</p>
+        <table class="compare">
+          <tbody>
+            <tr><th>address</th><td colspan="2"><code>0x3813b1dbc6285b9938f01f9055eee81b6495c489</code></td></tr>
+            <tr><th>network</th><td colspan="2">Arc Testnet (5042002)</td></tr>
+            <tr><th>status</th><td colspan="2" class="good">verified — full bytecode match</td></tr>
+          </tbody>
+        </table>
+        <p>
+          <code>inspect(address)</code> returns the native balance, the ERC-20 balance, the dust
+          between them, and whether they agree — in a single call, which also closes the torn-read
+          window that separate <code>eth_call</code>s have across Arc's ~500&nbsp;ms blocks.
+        </p>
+        <p>
+          <code>splitEvenly(address[])</code> distributes native value exactly and hands the
+          remainder to the first recipient. Verified on-chain: the contract keeps <strong>0</strong>.
+        </p>
+      </section>
+
+      <!-- 8 -->
+      <section class="slide">
+        <h2>Try it</h2>
+        <p class="lede">
+          Paste any testnet address into the demo and watch both interfaces disagree about how much
+          money is there.
+        </p>
+        <p class="links big-links">
+          <a href="https://arc-units.vercel.app">arc-units.vercel.app</a>
+          <a href="https://github.com/JspIIV/arc-units">github.com/JspIIV/arc-units</a>
+          <a href="https://testnet.arcscan.app/address/0x3813b1dbc6285b9938f01f9055eee81b6495c489">contract on arcscan</a>
+        </p>
+        <h3>What's next</h3>
+        <ul>
+          <li>A sweeper that finds and consolidates stranded dust across accounts</li>
+          <li>Unit-safe wrappers over App Kit's bridge / swap / send flows</li>
+          <li>Answers on whether the flooring is guaranteed, and whether mainnet keeps the 18/6 split</li>
+        </ul>
+      </section>
+    </main>
+
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      const counter = document.getElementById("current");
+
+      /**
+       * Whichever slide covers the middle of the viewport is the current one.
+       * Derived from scroll position rather than IntersectionObserver, which
+       * needs the page to be compositing and so goes silent in background tabs
+       * and headless captures.
+       */
+      const currentIndex = () => {
+        const middle = window.scrollY + window.innerHeight / 2;
+        let index = 0;
+        slides.forEach((slide, i) => {
+          if (slide.offsetTop <= middle) index = i;
+        });
+        return index;
+      };
+
+      const sync = () => {
+        counter.textContent = currentIndex() + 1;
+      };
+
+      addEventListener("scroll", sync, { passive: true });
+      addEventListener("resize", sync);
+      sync();
+
+      addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        if (step === 0) return;
+        event.preventDefault();
+        const target = slides[Math.max(0, Math.min(slides.length - 1, currentIndex() + step))];
+        // Plain scrollTo: scroll-behavior is set in CSS, and scrollIntoView's
+        // smooth option can be cancelled outright by scroll snapping.
+        scrollTo({ top: target.offsetTop });
+        sync();
+      });
+    </script>
+  </body>
+</html>
