@@ -7,6 +7,32 @@
     <meta name="description" content="Self-running demo of arc-units, reading live Arc testnet state." />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◐</text></svg>" />
     <link rel="stylesheet" href="./demo.css" />
+    <script>
+      /*
+       * Surfaces failures on screen instead of only in the console. If the
+       * module fails to load or throws, the Start button stays inert with no
+       * visible explanation — which is indistinguishable from a dead page for
+       * anyone not holding devtools open.
+       */
+      window.__demoReady = false;
+      function demoStatus(message) {
+        var el = document.getElementById("preload");
+        if (el) el.textContent = message;
+      }
+      addEventListener("error", function (event) {
+        demoStatus("script error: " + (event.message || event.type));
+      });
+      addEventListener("unhandledrejection", function (event) {
+        demoStatus("failed: " + (event.reason && event.reason.message ? event.reason.message : event.reason));
+      });
+      addEventListener("load", function () {
+        setTimeout(function () {
+          if (!window.__demoReady) {
+            demoStatus("the page script never ran — try a different browser, or disable blockers");
+          }
+        }, 6000);
+      });
+    </script>
   </head>
   <body>
     <!-- Start gate: gives a clean first frame to begin recording on. -->

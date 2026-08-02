@@ -199,14 +199,31 @@ addEventListener("keydown", (event) => {
   }
 });
 
-// Prefetch, then unlock the start button.
-startButton.disabled = true;
-try {
-  paint(await collect());
-  preload.textContent = `live data loaded · ${Math.round(total / 1000)}s runtime`;
-} catch (error) {
-  paint(FALLBACK);
-  preload.textContent = "chain unreachable — playing with previously recorded readings";
-  console.warn("live fetch failed, using fallback", error);
-}
-startButton.disabled = false;
+// Signal to the inline watchdog in the page that this module actually ran.
+(window as unknown as { __demoReady: boolean }).__demoReady = true;
+
+/*
+ * Start is never disabled. Gating it on the network meant a slow or wedged RPC
+ * left a dead button with no way to begin, which is a worse failure than
+ * opening with the recorded readings. Live values are painted first from the
+ * fallback and overwritten if the chain answers in time.
+ */
+paint(FALLBACK);
+preload.textContent = "loading live readings…";
+
+const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
+  Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`timed out after ${ms}ms`)), ms)),
+  ]);
+
+void withTimeout(collect(), 15_000).then(
+  (readings) => {
+    paint(readings);
+    preload.textContent = `live data loaded · ${Math.round(total / 1000)}s runtime`;
+  },
+  (error) => {
+    preload.textContent = "chain unreachable — playing with previously recorded readings";
+    console.warn("live fetch failed, using fallback", error);
+  },
+);
