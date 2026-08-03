@@ -180,10 +180,32 @@ function play(): void {
   timer = setInterval(tick, 100);
 }
 
-startButton.addEventListener("click", play);
+/*
+ * Several ways in, on purpose. A single click target on a page that has to work
+ * first time during a recording is a single point of failure -- a stray drag,
+ * an overlay, a mis-sized hit area, and the take is lost with no clue why.
+ * Pointerdown fires where click sometimes does not, the whole gate is a target,
+ * Enter works, and ?autostart skips the gate entirely.
+ */
+let started = false;
+
+function startOnce(): void {
+  if (started) return;
+  started = true;
+  play();
+}
+
+startButton.addEventListener("click", startOnce);
+startButton.addEventListener("pointerdown", startOnce);
+gate.addEventListener("pointerdown", startOnce);
 
 addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
+  if (!started && (key === "enter" || key === " ")) {
+    event.preventDefault();
+    startOnce();
+    return;
+  }
   if (key === "f") {
     event.preventDefault();
     if (document.fullscreenElement) void document.exitFullscreen();
@@ -217,7 +239,7 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
     new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`timed out after ${ms}ms`)), ms)),
   ]);
 
-void withTimeout(collect(), 15_000).then(
+const live = withTimeout(collect(), 15_000).then(
   (readings) => {
     paint(readings);
     preload.textContent = `live data loaded · ${Math.round(total / 1000)}s runtime`;
@@ -227,3 +249,10 @@ void withTimeout(collect(), 15_000).then(
     console.warn("live fetch failed, using fallback", error);
   },
 );
+
+// ?autostart removes the gate from the equation: open the URL, hit record,
+// and the walkthrough begins on its own once the readings have settled.
+if (new URLSearchParams(location.search).has("autostart")) {
+  startButton.textContent = "starting…";
+  void live.then(() => setTimeout(startOnce, 1500));
+}
