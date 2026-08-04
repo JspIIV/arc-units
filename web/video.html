@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>arc-units — 3 minute demo video</title>
+    <meta name="description" content="Three-minute walkthrough of arc-units, built for the Programmable Money Hackathon." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◐</text></svg>" />
+
+    <!-- So the link unfurls with a thumbnail wherever it gets pasted. -->
+    <meta property="og:title" content="arc-units — one balance, two answers" />
+    <meta property="og:description" content="Three-minute demo. Arc exposes one USDC balance through two interfaces at different scales." />
+    <meta property="og:type" content="video.other" />
+    <meta property="og:url" content="https://arc-units.vercel.app/video" />
+    <meta property="og:video" content="https://arc-units.vercel.app/arc-units-demo.mp4" />
+    <meta name="twitter:card" content="player" />
+
+    <link rel="stylesheet" href="./video.css" />
+  </head>
+  <body>
+    <main>
+      <p class="kicker">Programmable Money Hackathon · DeFi Track</p>
+      <h1>arc<span class="dim">-</span>units</h1>
+      <p class="lede">
+        Arc exposes one USDC balance through two interfaces at different scales. Every figure in
+        this video was read from live Arc testnet while it was rendered.
+      </p>
+
+      <video controls preload="metadata" playsinline poster="./poster.png">
+        <source src="./arc-units-demo.mp4" type="video/mp4" />
+        Your browser cannot play embedded video —
+        <a href="./arc-units-demo.mp4">download the file instead</a>.
+      </video>
+
+      <p class="meta">3:00 · 1920×1080 · <a href="./arc-units-demo.mp4" download>download MP4</a></p>
+
+      <nav class="links">
+        <a href="https://github.com/JspIIV/arc-units">Code</a>
+        <a href="/deck">Deck</a>
+        <a href="/">Live demo</a>
+        <a href="https://testnet.arcscan.app/address/0x3813b1dbc6285b9938f01f9055eee81b6495c489">Contract</a>
+      </nav>
+    </main>
+  </body>
+</html>
