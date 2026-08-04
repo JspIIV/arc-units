@@ -26,6 +26,7 @@
     "probe": "node scripts/probe.mjs",
     "verify": "npm run build && node scripts/verify-e2e.mjs",
     "compile": "node scripts/compile.mjs",
+    "video": "npm run build && node scripts/render-video.mjs",
     "deploy": "npm run build && npm run compile && node scripts/deploy.mjs",
     "build:web": "esbuild web/app.ts web/demo.ts --bundle --minify --format=esm --target=es2022 --outdir=public && node scripts/copy-web.mjs"
   },
@@ -54,6 +55,8 @@
   "devDependencies": {
     "@types/node": "^26.1.2",
     "esbuild": "^0.28.1",
+    "ffmpeg-static": "^5.3.0",
+    "sharp": "^0.35.3",
     "solc": "^0.8.36",
     "typescript": "^7.0.2",
     "viem": "^2.55.10"
